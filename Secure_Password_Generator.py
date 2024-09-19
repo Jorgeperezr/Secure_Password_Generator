@@ -1,18 +1,50 @@
-import random
 import string
+import random
 
+# Historial de contraseñas generadas
+historial_contraseñas = []
+pin = None
+
+# Función para establecer el PIN
+def establecer_pin():
+    global pin
+    while True:
+        pin_1 = input("Se requiere establecer un PIN de 4 a 6 dígitos para gestionar las contraseñas: ")
+        pin_2 = input("Confirme su PIN: ")
+        
+        if pin_1 == pin_2 and pin_1.isdigit() and 4 <= len(pin_1) <= 6:
+            pin = pin_1
+            print("PIN establecido correctamente.")
+            break
+        else:
+            print("Error. Los PIN no coinciden o no cumplen con los requisitos (4 a 6 dígitos).")
+
+# Función para verificar el PIN
+def verificar_pin():
+    for _ in range(3):  # Tres intentos para ingresar el PIN correcto
+        intento = input("Ingrese su PIN para ver las contraseñas: ")
+        if intento == pin:
+            return True
+        else:
+            print("PIN incorrecto.")
+    return False
+
+# Función para mostrar el historial de contraseñas
+def mostrar_historial():
+    if verificar_pin():
+        if historial_contraseñas:
+            print("\nHistorial de contraseñas generadas:")
+            for i, contraseña in enumerate(historial_contraseñas, 1):
+                print(f"{i}. {contraseña}")
+        else:
+            print("\nNo hay contraseñas generadas aún.")
+    else:
+        print("Ha superado el número máximo de intentos. Acceso denegado.")
+
+# Función para generar contraseñas seguras
 def generar_contraseña(longitud, incluir_letras=True, incluir_digitos=True, incluir_especiales=True, incluir_mayusculas=True, incluir_minusculas=True):
-    # La función "generar_contraseña" permite al usuario personalizar la contraseña:
-    # longitud (int): Establecer longitud deseada de la contraseña.
-    # incluir_letras (bool): Seleccionar si se incluye letras en la contraseña.
-    # incluir_digitos (bool): Seleccionar si se incluye dígitos en la contraseña.
-    # incluir_especiales (bool): Indica si se incluye caracteres especiales en la contraseña.
-    # incluir_mayusculas (bool): Indica si se incluyen letras mayúsculas en la contraseña.
-    # incluir_minusculas (bool): Indica si se incluyen letras minúsculas en la contraseña.
-
     caracteres = ""
 
-    # Construir el conjunto de caracteres según las preferencias del usuario
     if incluir_letras:
         if incluir_mayusculas:
             caracteres += string.ascii_uppercase
@@ -23,77 +55,89 @@ def generar_contraseña(longitud, incluir_letras=True, incluir_digitos=True, inc
     if incluir_especiales:
         caracteres += string.punctuation
 
-    # Verificar que al menos un tipo de caracter esté incluido
     if not caracteres:
         raise ValueError("Debe seleccionar al menos un tipo de caracter.")
 
-    # Generar la contraseña aleatoria
     contraseña = ''.join(random.choice(caracteres) for _ in range(longitud))
     return contraseña
 
+# Función para verificar la fortaleza de la contraseña
+def verificar_fortaleza(contraseña):
+    longitud = len(contraseña)
+    tiene_mayusculas = any(c.isupper() for c in contraseña)
+    tiene_minusculas = any(c.islower() for c in contraseña)
+    tiene_digitos = any(c.isdigit() for c in contraseña)
+    tiene_especiales = any(c in string.punctuation for c in contraseña)
+
+    if longitud >= 12 and tiene_mayusculas and tiene_minusculas and tiene_digitos and tiene_especiales:
+        return "Fuerte"
+    elif longitud >= 8 and (tiene_mayusculas or tiene_minusculas) and tiene_digitos:
+        return "Media"
+    else:
+        return "Débil"
+
 def obtener_preferencias_contraseña():
-    """
-    Obtiene las preferencias del usuario para generar la contraseña.
-
-    Returns: una tupla de booleanos indicando si incluir letras, dígitos, caracteres especiales, mayúsculas y minúsculas.
-    """
-    try:
-        # Solicitar al usuario que elija las preferencias para la generacion de su contraseña
-        incluir_letras = input("¿Desea incluir letras en su contraseña? (s/n): ").lower() == 's'
-        incluir_digitos = input("¿Desea incluir dígitos en su contraseña? (s/n): ").lower() == 's'
-        incluir_especiales = input("¿Desea incluir caracteres especiales en su contraseña? (s/n): ").lower() == 's'
-        incluir_mayusculas = input("¿Incluir mayúsculas? (s/n): ").lower() == 's'
-        incluir_minusculas = input("¿Incluir minúsculas? (s/n): ").lower() == 's'
-
-        return incluir_letras, incluir_digitos, incluir_especiales, incluir_mayusculas, incluir_minusculas
-    except ValueError:
-        print("Error. Ingrese 's' para sí o 'n' para no.")
-
-def obtener_longitud_contraseña():
-    """
-    Obtiene la longitud deseada para la contraseña del usuario.
-
-    Returns: la longitud deseada para la contraseña (int).
-    """
     while True:
         try:
-            # Solicitar al usuario que ingrese la longitud deseada para la contraseña
-            longitud = int(input("Ingrese la longitud deseada para su contraseña: "))
+            incluir_letras = input("¿Desea incluir letras en su contraseña? (s/n): ").lower() == 's'
+            incluir_digitos = input("¿Desea incluir dígitos en su contraseña? (s/n): ").lower() == 's'
+            incluir_especiales = input("¿Desea incluir caracteres especiales en su contraseña? (s/n): ").lower() == 's'
+            incluir_mayusculas = input("¿Incluir mayúsculas? (s/n): ").lower() == 's'
+            incluir_minusculas = input("¿Incluir minúsculas? (s/n): ").lower() == 's'
+            return incluir_letras, incluir_digitos, incluir_especiales, incluir_mayusculas, incluir_minusculas
+        except ValueError:
+            print("Error. Ingrese 's' para sí o 'n' para no.")
 
-            # Validar si la longitud es positiva y mayor o igual a 5
-            if longitud <= 0:
-                print("Error. Se debe escoger un número positivo.")
-            elif longitud < 5:
-                print("Error. Para que la contraseña sea segura debe tener al menos 5 caracteres.")
+def obtener_longitud_contraseña():
+    while True:
+        try:
+            longitud = int(input("Ingrese la longitud deseada para su contraseña: "))
+            if longitud < 5:
+                print("Error. La contraseña debe tener al menos 5 caracteres.")
             else:
                 return longitud
         except ValueError:
             print("Error. Ingrese un número válido.")
 
 def main():
-    # Bucle while para establecer la longitud de la contraseña
+    establecer_pin()  # Establecer el PIN al inicio del programa
+
     while True:
-        longitud_contraseña = obtener_longitud_contraseña()
+        print("\n--- Generador de Contraseñas ---")
+        print("1. Generar nueva contraseña")
+        print("2. Ver historial de contraseñas")
+        print("3. Salir")
+        
+        opcion = input("Seleccione una opción: ")
 
-        # Obtener las preferencias del usuario para la contraseña
-        incluir_letras, incluir_digitos, incluir_especiales, incluir_mayusculas, incluir_minusculas = obtener_preferencias_contraseña()
+        if opcion == "1":
+            longitud_contraseña = obtener_longitud_contraseña()
+            incluir_letras, incluir_digitos, incluir_especiales, incluir_mayusculas, incluir_minusculas = obtener_preferencias_contraseña()
 
-        try:
-            # Generar la contraseña
-            contraseña_generada = generar_contraseña(
-                longitud_contraseña,
-                incluir_letras,
-                incluir_digitos,
-                incluir_especiales,
-                incluir_mayusculas,
-                incluir_minusculas
-            )
+            try:
+                contraseña_generada = generar_contraseña(
+                    longitud_contraseña,
+                    incluir_letras,
+                    incluir_digitos,
+                    incluir_especiales,
+                    incluir_mayusculas,
+                    incluir_minusculas
+                )
+                fortaleza = verificar_fortaleza(contraseña_generada)
+                print(f"\nContraseña generada: {contraseña_generada} (Fortaleza: {fortaleza})")
+                historial_contraseñas.append(contraseña_generada)
+            except ValueError as e:
+                print(f"Error: {e}")
 
-            # Mostrar la contraseña generada
-            print(f"La contraseña generada es: {contraseña_generada}")
+        elif opcion == "2":
+            mostrar_historial()
+
+        elif opcion == "3":
+            print("¡Gracias por usar el generador de contraseñas!")
             break
-        except ValueError as e:
-            print(f"Error: {e}")
+
+        else:
+            print("Opción no válida. Inténtelo de nuevo.")
 
 if __name__ == "__main__":
     main()
